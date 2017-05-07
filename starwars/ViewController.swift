@@ -8,36 +8,68 @@
 
 import UIKit
 
-class ViewController: UIViewController, UITextFieldDelegate {
+class ViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
 
-    //MARK: Properties
     
-    @IBOutlet weak var nameTextField: UITextField!
-  
-    @IBOutlet weak var mealNameLabel: UILabel!
+    var films: [Films]?
+    var filmsWrapper: FilmsWrapper?
+    
+    @IBOutlet weak var tableview: UITableView?
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
         
-        nameTextField.delegate = self
+        self.loadFilms()
+        
     }
     
-    //MARK: UITextFielddelegate
-    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-        textField.resignFirstResponder()
-        return true
+    func loadFilms() {
+        Films.getFilms { result in
+            let filmsWrapper = result.value
+            
+            self.addFilmsFromWrapper(filmsWrapper)
+            
+            self.tableview?.reloadData()
+        }
     }
     
-    func textFieldDidEndEditing(_ textField: UITextField) {
-        mealNameLabel.text = textField.text
+    func addFilmsFromWrapper(_ wrapper: FilmsWrapper?) {
+        self.filmsWrapper = wrapper
+        if self.films == nil {
+            self.films = self.filmsWrapper?.films
+        } else if self.filmsWrapper != nil && self.filmsWrapper!.films != nil {
+            self.films = self.films! + self.filmsWrapper!.films!
+        }
     }
-
-    //MARK: Actions
     
-    @IBAction func setDefaultLabelText(_ sender: UIButton) {
-        mealNameLabel.text = "Default"
+    
+    //MARK: TableViewDataSource
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        if self.films == nil {
+            return 0
+        } else {
+            return self.films!.count
+        }
     }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
+        
+        
+        let filmToShow = films![indexPath.row]
+        cell.textLabel?.text = filmToShow.title
+        cell.detailTextLabel?.text = filmToShow.director! + filmToShow.releaseDate!
+    
+        
+        return cell
+    }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        
+    }
+    
 
 }
 
